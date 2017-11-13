@@ -29,9 +29,8 @@ final case class AvConvInfo(format:    Option[String] = None,
                             bitRate:   Option[Int] = None,
                             videoInfo: Option[VideoInfo])
 
-object AvConvInfo extends LazyLogging {
-  private val EXE_NAME = "avconv"
-  private val sdf      = new SimpleDateFormat("HH:mm:ss.S")
+object AvConvInfo extends TrailerMaker {
+  private val sdf = new SimpleDateFormat("HH:mm:ss.S")
 
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
@@ -69,11 +68,12 @@ object AvConvInfo extends LazyLogging {
             if (split.size == 4) (split(0).trim, split(2).trim, "0")
             else (split(0).trim, split(2).trim, split(4).trim.substring(0, split(4).trim.indexOf(' ')))
 
-          val splitRes = res.split("x")
-          val (w, h)   = (splitRes(0).trim, splitRes(1).trim)
+          val parsedFps = if (fps == "1k") "100" else fps
+          val splitRes  = res.split("x")
+          val (w, h)    = (splitRes(0).trim, splitRes(1).trim)
 
           map +
-            ("vcodec" -> vcodec, "vWidth" -> w, "vHeight" -> h, "fps" -> fps)
+            ("vcodec" -> vcodec, "vWidth" -> w, "vHeight" -> h, "fps" -> parsedFps)
         }
         case x if x isEmpty => map
         case _              => go(str.substring(1), map)

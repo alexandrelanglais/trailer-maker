@@ -13,5 +13,6 @@ libraryDependencies += "com.github.pathikrit"       %% "better-files"   % "3.2.0
 wartremoverErrors ++= Warts.allBut(
   Wart.DefaultArguments,
   Wart.Nothing,
+  Wart.Equals,
   Wart.NonUnitStatements
 )
