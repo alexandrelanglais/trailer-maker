@@ -14,7 +14,7 @@ class AvConvCutterTest extends AsyncFlatSpec with Matchers {
       _ = assert(file.exists)
 
       infos <- AvConvInfo.readFileInfo(file)
-      _ = assert(infos.duration === 2.97.seconds)
+      _ = assert(infos.duration === 2.9.seconds)
 
       file <- AvConvCutter.cut(File.resource("duration-6.84.webm"), "00:00:03", "00:00:03")
       _ = assert(file.exists)
@@ -32,5 +32,15 @@ class AvConvCutterTest extends AsyncFlatSpec with Matchers {
       _ = assert(infos.duration === 1.seconds)
     } yield Succeeded
 
+  }
+
+  it should "work with avi files" in {
+    for {
+      file <- AvConvCutter.cut(File.resource("duration-6.84.avi"), "00:00:01", "00:00:02")
+      _ = assert(file.exists)
+
+      infos <- AvConvInfo.readFileInfo(file)
+      _ = assert(infos.duration === 2.9.seconds)
+    } yield Succeeded
   }
 }

@@ -61,13 +61,13 @@ object AvConvInfo extends TrailerMakerBase {
           val path    = inQuote.substring(0, inQuote.indexOf('\''))
           go(str.substring(12), map + ("filePath" -> path))
         }
-        case x if x startsWith "Stream #0.0" => {
+        case x if x startsWith "Stream #0" => {
           val video = x.substring(x.indexOf("Video:") + 7)
           val split = video.split(",")
 
           val (vcodec: String, res: String, fps: String) =
-            if (split.size == 4) (split(0).trim, split(2).trim, "0")
-            else (split(0).trim, split(2).trim, split(4).trim.substring(0, split(4).trim.indexOf(' ')))
+            if (split.size == 4) (getValue(split(0)), getValue(split(2)), "0")
+            else (getValue(split(0)), getValue(split(2)), getValue(split(4)))
 
           val parsedFps = if (fps == "1k") "100" else fps
           val splitRes  = res.split("x")
@@ -80,6 +80,11 @@ object AvConvInfo extends TrailerMakerBase {
         case _              => go(str.substring(1), map)
       }
     parseInfoMap(go(string, Map.empty[String, String]))
+  }
+
+  private def getValue(str : String): String = {
+    val s = str.trim
+    if(s.contains(" ")) s.substring(0, s.indexOf(' ')) else s
   }
 
   private def parseInfoMap(infos: Map[String, String]): AvConvInfo = {

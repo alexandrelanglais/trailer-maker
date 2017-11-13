@@ -30,7 +30,8 @@ object AvConvCutter extends TrailerMakerBase {
       val ioLogger =
         ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-      val tmpFilePath = File.newTemporaryFile(suffix = ".webm")
+      val ext = file.extension.fold("")(_.toString)
+      val tmpFilePath = File.newTemporaryFile(suffix = ext)
 
       val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -vcodec copy -acodec copy $tmpFilePath"
       logger.debug(cmd)
