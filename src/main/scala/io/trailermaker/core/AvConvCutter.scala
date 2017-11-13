@@ -21,25 +21,25 @@ import scala.util.Success
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AvConvCutter extends TrailerMaker {
+object AvConvCutter extends TrailerMakerBase {
+  def cut(file: File, start: String, duration: String): Future[File] =
+    Future {
+      val out = new StringBuilder
+      val err = new StringBuilder
 
-  def cut(file: File, start: String, duration: String): Future[File] = {
-    val out = new StringBuilder
-    val err = new StringBuilder
+      val ioLogger =
+        ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-    val ioLogger =
-      ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
+      val tmpFilePath = File.newTemporaryFile(suffix = ".webm")
 
-    val tmpFilePath = File.newTemporaryFile(suffix = ".webm")
+      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -vcodec copy -acodec copy $tmpFilePath"
+      logger.debug(cmd)
+      val s = cmd ! (ioLogger)
 
-    val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -vcodec copy -acodec copy $tmpFilePath"
-    logger.debug(cmd)
-    val s = cmd ! (ioLogger)
-
-//    parseCutFileString(err.toString)
-    println(err.toString)
-    Future(tmpFilePath)
-  }
+      //    parseCutFileString(err.toString)
+      println(err.toString)
+      tmpFilePath
+    }
 
 //  def parseCutFileString(toString: String): Future[File] = {
 //  }

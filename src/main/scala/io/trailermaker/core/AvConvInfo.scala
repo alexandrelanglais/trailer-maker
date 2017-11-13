@@ -29,26 +29,27 @@ final case class AvConvInfo(format:    Option[String] = None,
                             bitRate:   Option[Int] = None,
                             videoInfo: Option[VideoInfo])
 
-object AvConvInfo extends TrailerMaker {
+object AvConvInfo extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss.S")
 
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
-  def readFileInfo(file: File): Future[AvConvInfo] = {
-    val out = new StringBuilder
-    val err = new StringBuilder
+  def readFileInfo(file: File): Future[AvConvInfo] =
+    Future {
+      val out = new StringBuilder
+      val err = new StringBuilder
 
-    val ioLogger =
-      ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
+      val ioLogger =
+        ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-    val cmd = s"$EXE_NAME -i ${file.pathAsString}"
-    logger.debug(cmd)
-    val s = cmd ! ioLogger
+      val cmd = s"$EXE_NAME -i ${file.pathAsString}"
+      logger.debug(cmd)
+      val s = cmd ! (ioLogger)
 
-    parseFileInfoString(err.toString)
-  }
+      parseFileInfoString(err.toString)
+    }
 
-  private def parseFileInfoString(string: String): Future[AvConvInfo] = {
+  private def parseFileInfoString(string: String): AvConvInfo = {
     logger.debug(string)
     @tailrec
     def go(str: String, map: Map[String, String]): Map[String, String] =
@@ -81,7 +82,7 @@ object AvConvInfo extends TrailerMaker {
     parseInfoMap(go(string, Map.empty[String, String]))
   }
 
-  private def parseInfoMap(infos: Map[String, String]): Future[AvConvInfo] = {
+  private def parseInfoMap(infos: Map[String, String]): AvConvInfo = {
     logger.debug(infos.toString)
     val dur = infos
       .get("duration")
@@ -101,9 +102,7 @@ object AvConvInfo extends TrailerMaker {
         fps
       )
 
-    if (dur.isEmpty) Future.failed(new Exception("Duration could not be retrieved from file"))
-    else Future(AvConvInfo(duration = dur.fold(0.seconds)(x => x), fileName = fn, videoInfo = vInfo))
-
+    AvConvInfo(duration = dur.fold(0.seconds)(x => x), fileName = fn, videoInfo = vInfo)
   }
 
 }
