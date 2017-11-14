@@ -1,6 +1,6 @@
-name := "trailer-maker"
-
-version := "0.1"
+name := "Trailer maker"
+organization := "io.trailermaker"
+version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.12.4"
 

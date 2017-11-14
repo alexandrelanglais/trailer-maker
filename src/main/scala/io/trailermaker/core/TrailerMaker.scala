@@ -14,22 +14,24 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
+final case class TMOptions(interval: Int, length: Int)
+
 object TrailerMaker extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss")
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
-  def makeTrailer(file: File): Future[File] = {
-    val interval = 35000
-    val length   = 1000
+  def makeTrailer(file: File, options: Option[TMOptions] = None): Future[File] = {
+    val defaultOptions = TMOptions(35000, 1000)
+    val interval       = options.getOrElse(defaultOptions).interval
+    val length         = options.getOrElse(defaultOptions).length
     for {
       fileInfo: AvConvInfo <- AvConvInfo.readFileInfo(file)
-      _ = logger.debug(s"file duration=${fileInfo.duration.length}")
+      _     = logger.debug(s"file duration=${fileInfo.duration.length}")
       ivals = (0L until fileInfo.duration.length by interval).toList
-      _ = logger.debug(s"splits=${ivals.mkString(",")}")
+      _     = logger.debug(s"splits=${ivals.mkString(",")}")
       futs <- Future.sequence(for {
                ival <- ivals
-             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(length)))
-      )
+             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(length))))
 
       res <- AvConvConcat.concat(futs)
       _ = futs.map(toRm => toRm.delete(true))
