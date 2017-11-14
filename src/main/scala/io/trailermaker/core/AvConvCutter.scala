@@ -24,6 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object AvConvCutter extends TrailerMakerBase {
   def cut(file: File, start: String, duration: String): Future[File] =
     Future {
+      logger.debug(s"Cutting file ${file.name} from $start and duration $duration")
       val out = new StringBuilder
       val err = new StringBuilder
 

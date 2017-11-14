@@ -14,19 +14,25 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-object TrailerMaker {
+object TrailerMaker extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss")
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   def makeTrailer(file: File): Future[File] = {
-    val interval = 5000
-    val length   = 6000
+    val interval = 35000
+    val length   = 1000
     for {
       fileInfo: AvConvInfo <- AvConvInfo.readFileInfo(file)
+      _ = logger.debug(s"file duration=${fileInfo.duration.length}")
       ivals = (0L until fileInfo.duration.length by interval).toList
-      cutFiles <- ivals.flatMap(ival => List(AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(length)))))
-      cut <- cutFiles
-      res <- AvConvConcat.concat(List(cut))
+      _ = logger.debug(s"splits=${ivals.mkString(",")}")
+      futs <- Future.sequence(for {
+               ival <- ivals
+             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(length)))
+      )
+
+      res <- AvConvConcat.concat(futs)
+      _ = futs.map(toRm => toRm.delete(true))
     } yield res
   }
 

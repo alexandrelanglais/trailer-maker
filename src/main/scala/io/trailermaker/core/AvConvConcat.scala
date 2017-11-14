@@ -11,7 +11,7 @@ import scala.sys.process._
 object AvConvConcat extends TrailerMakerBase {
   def concat(files: List[File]): Future[File] = {
     Future {
-      val tmpFile = File.newTemporaryFile()
+      val tmpFile = File.newTemporaryFile(suffix = ".txt")
       val output = File.newTemporaryFile(suffix = ".avi", prefix = "concat-")
       files.map(f => tmpFile.append(s"file '${f.pathAsString}'\n"))
 
@@ -21,7 +21,8 @@ object AvConvConcat extends TrailerMakerBase {
       val ioLogger =
         ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-      val cmd = s"$EXE_NAME -y -f concat -safe 0 -i ${tmpFile.pathAsString} -c copy ${output.pathAsString}"
+//      val cmd = s"$EXE_NAME -y -f concat -safe 0 -i ${tmpFile.pathAsString} -c copy ${output.pathAsString}"
+      val cmd = s"$EXE_NAME -y -safe 0 -f concat -i ${tmpFile.pathAsString} -c copy ${output.pathAsString}"
       logger.debug(cmd)
       val s = cmd ! (ioLogger)
 

@@ -52,16 +52,16 @@ object AvConvInfo extends TrailerMakerBase {
   private def parseFileInfoString(string: String): AvConvInfo = {
     logger.debug(string)
     @tailrec
-    def go(str: String, map: Map[String, String]): Map[String, String] =
+    def go(str: String, map: Map[String, String]): Map[String, String] = {
       str match {
-        case x if x startsWith "Duration: " =>
+        case x if x startsWith "Duration:" =>
           go(str.substring(12), map + ("duration" -> (x.substring(x.indexOf(' ') + 1, x.indexOf(' ') + 12) + "0")))
         case x if x startsWith "from '" => {
           val inQuote = x.substring(x.indexOf('\'') + 1)
-          val path    = inQuote.substring(0, inQuote.indexOf('\''))
+          val path = inQuote.substring(0, inQuote.indexOf('\''))
           go(str.substring(12), map + ("filePath" -> path))
         }
-        case x if x startsWith "Stream #0" => {
+        case x if x startsWith "Stream #0.0" => {
           val video = x.substring(x.indexOf("Video:") + 7)
           val split = video.split(",")
 
@@ -70,15 +70,16 @@ object AvConvInfo extends TrailerMakerBase {
             else (getValue(split(0)), getValue(split(2)), getValue(split(4)))
 
           val parsedFps = if (fps == "1k") "100" else fps
-          val splitRes  = res.split("x")
-          val (w, h)    = (splitRes(0).trim, splitRes(1).trim)
+          val splitRes = res.split("x")
+          val (w, h) = (splitRes(0).trim, splitRes(1).trim)
 
           map +
             ("vcodec" -> vcodec, "vWidth" -> w, "vHeight" -> h, "fps" -> parsedFps)
         }
-        case x if x isEmpty => map
-        case _              => go(str.substring(1), map)
+        case x if x.trim isEmpty => map
+        case _ => go(str.substring(1), map)
       }
+    }
     parseInfoMap(go(string, Map.empty[String, String]))
   }
 

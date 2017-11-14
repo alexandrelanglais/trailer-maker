@@ -26,6 +26,9 @@ class AvConvInfoTest extends AsyncFlatSpec with Matchers {
 
       file2 <- AvConvInfo.readFileInfo(vFile2)
       _ = assert(file2.duration === 6.84.seconds)
+
+      file3 <- AvConvInfo.readFileInfo(File("/tmp/futfut.avi"))
+      _ = assert(file3.duration != 0.seconds)
     } yield Succeeded
 
   }
