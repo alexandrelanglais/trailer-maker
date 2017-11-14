@@ -12,7 +12,9 @@ object AvConvConcat extends TrailerMakerBase {
   def concat(files: List[File]): Future[File] = {
     Future {
       val tmpFile = File.newTemporaryFile(suffix = ".txt")
-      val output = File.newTemporaryFile(suffix = ".avi", prefix = "concat-")
+      val ext = files.headOption.fold(".avi")(f => f.extension.fold(".avi")(e => e))
+
+      val output = File.newTemporaryFile(suffix = ext, prefix = "concat-")
       files.map(f => tmpFile.append(s"file '${f.pathAsString}'\n"))
 
       val out = new StringBuilder
@@ -21,7 +23,7 @@ object AvConvConcat extends TrailerMakerBase {
       val ioLogger =
         ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-//      val cmd = s"$EXE_NAME -y -f concat -safe 0 -i ${tmpFile.pathAsString} -c copy ${output.pathAsString}"
+//      val cmd = s"$EXE_NAME -y -safe 0 -f concat -i ${tmpFile.pathAsString} ${output.pathAsString}"
       val cmd = s"$EXE_NAME -y -safe 0 -f concat -i ${tmpFile.pathAsString} -c copy ${output.pathAsString}"
       logger.debug(cmd)
       val s = cmd ! (ioLogger)

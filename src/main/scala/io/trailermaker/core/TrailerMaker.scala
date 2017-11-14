@@ -7,6 +7,7 @@ import java.util.TimeZone
 import better.files._
 import io.trailermaker.core.AvConvInfo.sdf
 
+import scala.annotation.tailrec
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.util.Failure
@@ -14,38 +15,74 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-final case class TMOptions(interval: Int, length: Int)
+final case class TMOptions(interval: Option[Long] = None, length: Option[Long] = None, duration: Option[Long] = None)
+final case class Arguments(filePath: Option[File], opts: Option[TMOptions])
 
 object TrailerMaker extends TrailerMakerBase {
-  private val sdf = new SimpleDateFormat("HH:mm:ss")
+  private val sdf = new SimpleDateFormat("HH:mm:ss.S")
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   def makeTrailer(file: File, options: Option[TMOptions] = None): Future[File] = {
-    val defaultOptions = TMOptions(35000, 1000)
-    val interval       = options.getOrElse(defaultOptions).interval
-    val length         = options.getOrElse(defaultOptions).length
+
+    val defaultOptions = TMOptions(interval = Some(75000L), length = Some(1000L))
+    val cutLengths = options.getOrElse(defaultOptions).length.getOrElse(1000L)
+
+    val duration = options match {
+      case Some(opt) =>
+        opt.duration match {
+          case Some(d) => d
+          case None    => 0L
+        }
+      case None => 0L
+    }
+
     for {
       fileInfo: AvConvInfo <- AvConvInfo.readFileInfo(file)
-      _     = logger.debug(s"file duration=${fileInfo.duration.length}")
+      _ = logger.debug(s"file duration=${fileInfo.duration.length}")
+      _ = logger.debug(s"wanted duration=$duration")
+      _ = logger.debug(s"cut length=$cutLengths")
+      interval = if (duration == 0L) options.getOrElse(defaultOptions).interval.getOrElse(0L)
+      else (fileInfo.duration.length.doubleValue() / duration.doubleValue() * cutLengths).longValue()
+      _     = logger.debug(s"interval=$interval")
       ivals = (0L until fileInfo.duration.length by interval).toList
       _     = logger.debug(s"splits=${ivals.mkString(",")}")
       futs <- Future.sequence(for {
                ival <- ivals
-             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(length))))
+             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths))))
 
       res <- AvConvConcat.concat(futs)
       _ = futs.map(toRm => toRm.delete(true))
     } yield res
   }
 
-  def main(args: Array[String]): Unit = {
-    val r = AvConvInfo
-      .readFileInfo(file"/tmp/1502289537524872459.webm")
-      .map(
-        a => println(s"Video duration : ${a.duration} ms")
-      )
-
-    Await.result(r, 5.seconds)
+  def usage(): Unit = {
+    println("Usage: TrailerMaker -f <file-path> [options]")
+    println("where options can be:")
+    println("\t-i <value>: interval in ms between cuts")
+    println("\t-l <value>: length in ms of each cut")
   }
+
+  @tailrec
+  def parseArgs(args: List[String], a: Arguments): Arguments = args match {
+    case x :: f :: xs if x.startsWith("-f") => parseArgs(xs, a.copy(filePath = Some(File(f))))
+    case x :: f :: xs if x.startsWith("-i") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(interval = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-l") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(length = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-d") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
+    case Nil                                => a
+  }
+
+  def main(args: Array[String]): Unit =
+    if (args.length == 0) {
+      usage()
+    } else {
+      val ar = parseArgs(args.toList, Arguments(None, None))
+      ar.filePath match {
+        case None => println("Attribute -f is mandatory")
+        case Some(file) => {
+          val r = makeTrailer(file, ar.opts).map(v => println(s"Trailer generated at ${v.pathAsString}"))
+          Await.result(r, 15.hours)
+        }
+      }
+    }
 
 }
