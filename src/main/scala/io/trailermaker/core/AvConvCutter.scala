@@ -22,6 +22,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AvConvCutter extends TrailerMakerBase {
+
   def cut(file: File, start: String, duration: String): Future[File] =
     Future {
       logger.debug(s"Cutting file ${file.name} from $start and duration $duration")
@@ -31,11 +32,11 @@ object AvConvCutter extends TrailerMakerBase {
       val ioLogger =
         ProcessLogger((o: String) => out.append(o), (e: String) => err.append(e))
 
-      val ext = file.extension.fold("")(_.toString)
+      val ext         = file.extension.fold("")(_.toString)
       val tmpFilePath = File.newTemporaryFile(suffix = ".webm")
 
 //      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -vcodec copy -acodec copy $tmpFilePath"
-      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration $tmpFilePath"
+      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -c:v vp8 -c:a libvorbis $tmpFilePath"
       logger.debug(cmd)
       val s = cmd ! (ioLogger)
 

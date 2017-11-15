@@ -15,7 +15,7 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-final case class TMOptions(interval: Option[Long] = None, length: Option[Long] = None, duration: Option[Long] = None)
+final case class TMOptions(interval: Option[Long] = None, length: Option[Long] = None, duration: Option[Long] = None, outputFile: Option[File] = None)
 final case class Arguments(filePath: Option[File], opts: Option[TMOptions])
 
 object TrailerMaker extends TrailerMakerBase {
@@ -25,7 +25,8 @@ object TrailerMaker extends TrailerMakerBase {
   def makeTrailer(file: File, options: Option[TMOptions] = None): Future[File] = {
 
     val defaultOptions = TMOptions(interval = Some(75000L), length = Some(1000L))
-    val cutLengths = options.getOrElse(defaultOptions).length.getOrElse(1000L)
+    val cutLengths     = options.getOrElse(defaultOptions).length.getOrElse(1000L)
+    val outputFile     = options.getOrElse(defaultOptions).outputFile.getOrElse(File.newTemporaryFile(prefix = "concat-"))
 
     val duration = options match {
       case Some(opt) =>
@@ -50,16 +51,18 @@ object TrailerMaker extends TrailerMakerBase {
                ival <- ivals
              } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths))))
 
-      res <- AvConvConcat.concat(futs)
+      res <- AvConvConcat.concat(futs, outputFile)
       _ = futs.map(toRm => toRm.delete(true))
     } yield res
   }
 
   def usage(): Unit = {
-    println("Usage: TrailerMaker -f <file-path> [options]")
+    println("Usage: TrailerMaker -f <original-file-path> [options]")
     println("where options can be:")
+    println("\t-o <path>: output path for the trailer created")
     println("\t-i <value>: interval in ms between cuts")
     println("\t-l <value>: length in ms of each cut")
+    println("\t-d <value>: final duration in ms (overrides interval)")
   }
 
   @tailrec
@@ -68,6 +71,7 @@ object TrailerMaker extends TrailerMakerBase {
     case x :: f :: xs if x.startsWith("-i") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(interval = Some(f.toInt)))))
     case x :: f :: xs if x.startsWith("-l") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(length = Some(f.toInt)))))
     case x :: f :: xs if x.startsWith("-d") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-o") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(outputFile = Some(File(f))))))
     case Nil                                => a
   }
 

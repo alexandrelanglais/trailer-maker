@@ -6,14 +6,20 @@ import org.scalatest._
 import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-class TrailerMakerTest extends AsyncFlatSpec with Matchers {
-  "TrailerMaker" should "be able to make a trailer from a video file" in {
+class TrailerMakerTest extends FlatSpec with Matchers {
+  "TrailerMaker" should "be able to parse all arguments passed" in {
+    val args = "-f input.webm -l 2000 -i 1000 -o output".split(" ").toList
+    val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
+    assert(a.filePath.nonEmpty)
+    assert(a.opts.nonEmpty)
     for {
-      file <- TrailerMaker.makeTrailer(File("/tmp/futfut.avi"))
-      _ = assert(file.exists)
-
-//      infos <- AvConvInfo.readFileInfo(file)
-//      _ = assert(infos.duration === 7.54.seconds)
+      o <- a.opts
+      length <- o.length
+      _ = assert(length === 2000)
+      interval <- o.interval
+      _ = assert(interval === 1000)
+      out <- o.outputFile
+      _ = assert(out.name === "output")
     } yield Succeeded
   }
 }
