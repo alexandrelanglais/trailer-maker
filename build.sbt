@@ -17,3 +17,5 @@ wartremoverErrors ++= Warts.allBut(
   Wart.Equals,
   Wart.NonUnitStatements
 )
+
+mainClass in assembly := Some("io.trailermaker.core.TrailerMaker")
