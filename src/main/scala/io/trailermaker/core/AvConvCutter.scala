@@ -36,7 +36,8 @@ object AvConvCutter extends TrailerMakerBase {
       val tmpFilePath = File.newTemporaryFile(suffix = ".webm")
 
 //      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -vcodec copy -acodec copy $tmpFilePath"
-      val cmd = s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -c:v vp8 -c:a libvorbis -quality good -b:v 600k -qmin 10 -qmax 42 -maxrate 500k -bufsize 1000k $tmpFilePath"
+      val cmd =
+        s"$EXE_NAME -y -ss $start -i ${file.pathAsString} -t $duration -c:v vp8 -c:a libvorbis -quality good -b:v 600k -qmin 10 -qmax 42 -maxrate 500k -bufsize 1000k $tmpFilePath"
       logger.debug(cmd)
       val s = cmd ! (ioLogger)
 
