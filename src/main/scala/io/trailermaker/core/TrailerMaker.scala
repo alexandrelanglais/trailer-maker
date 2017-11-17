@@ -15,8 +15,12 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-final case class TMOptions(interval: Option[Long] = None, length: Option[Long] = None, duration: Option[Long] = None, outputFile: Option[File] = None)
-final case class Arguments(filePath: Option[File], opts: Option[TMOptions])
+final case class TMOptions(interval:     Option[Long] = None,
+                           length:       Option[Long] = None,
+                           duration:     Option[Long] = None,
+                           outputFile:   Option[File] = None,
+                           progressFile: Option[File] = None)
+final case class Arguments(filePath:     Option[File], opts: Option[TMOptions])
 
 object TrailerMaker extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss.S")
@@ -27,6 +31,9 @@ object TrailerMaker extends TrailerMakerBase {
     val defaultOptions = TMOptions(interval = Some(75000L), length = Some(1000L))
     val cutLengths     = options.getOrElse(defaultOptions).length.getOrElse(1000L)
     val outputFile     = options.getOrElse(defaultOptions).outputFile.getOrElse(File.newTemporaryFile(prefix = "concat-"))
+    val processFile    = options.getOrElse(defaultOptions).progressFile.getOrElse(File.newTemporaryFile(prefix = "process-", suffix = ".txt"))
+
+    processFile.createIfNotExists()
 
     val duration = options match {
       case Some(opt) =>
@@ -49,8 +56,10 @@ object TrailerMaker extends TrailerMakerBase {
       _     = logger.debug(s"splits=${ivals.mkString(",")}")
       futs <- Future.sequence(for {
                ival <- ivals
+               _ = processFile.writeText(s"Cutting part ${(ival / fileInfo.duration.length) + 1}/${ivals.length}")
              } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths))))
 
+      _ = processFile.writeText(s"Concatenating parts")
       res <- AvConvConcat.concat(futs, outputFile)
       _ = futs.map(toRm => toRm.delete(true))
     } yield res
@@ -72,6 +81,7 @@ object TrailerMaker extends TrailerMakerBase {
     case x :: f :: xs if x.startsWith("-l") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(length = Some(f.toInt)))))
     case x :: f :: xs if x.startsWith("-d") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
     case x :: f :: xs if x.startsWith("-o") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(outputFile = Some(File(f))))))
+    case x :: f :: xs if x.startsWith("-p") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(progressFile = Some(File(f))))))
     case Nil                                => a
   }
 
