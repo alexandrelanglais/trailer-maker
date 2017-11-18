@@ -19,7 +19,8 @@ final case class TMOptions(interval:     Option[Long] = None,
                            length:       Option[Long] = None,
                            duration:     Option[Long] = None,
                            outputFile:   Option[File] = None,
-                           progressFile: Option[File] = None)
+                           progressFile: Option[File] = None,
+                           start:        Option[Long] = None)
 final case class Arguments(filePath:     Option[File], opts: Option[TMOptions])
 
 object TrailerMaker extends TrailerMakerBase {
@@ -44,6 +45,15 @@ object TrailerMaker extends TrailerMakerBase {
       case None => 0L
     }
 
+    val start = options match {
+      case Some(opt) =>
+        opt.start match {
+          case Some(d) => d
+          case None    => 0L
+        }
+      case None => 0L
+    }
+
     for {
       fileInfo: AvConvInfo <- AvConvInfo.readFileInfo(file)
       _ = logger.debug(s"file duration=${fileInfo.duration.length}")
@@ -52,15 +62,16 @@ object TrailerMaker extends TrailerMakerBase {
       interval = if (duration == 0L) options.getOrElse(defaultOptions).interval.getOrElse(0L)
       else (fileInfo.duration.length.doubleValue() / duration.doubleValue() * cutLengths).longValue()
       _     = logger.debug(s"interval=$interval")
-      ivals = (0L until fileInfo.duration.length by interval).toList
+      ivals = (start until fileInfo.duration.length by interval).toList
       _     = logger.debug(s"splits=${ivals.mkString(",")}")
       futs <- Future.sequence(for {
                ival <- ivals
-               _ = processFile.writeText(s"Cutting part ${(ival / fileInfo.duration.length) + 1}/${ivals.length}")
-             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths))))
+               part = s"${(ival / interval) + 1}/${ivals.length}"
+             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths)), Some(processFile), Some(part)))
 
       _ = processFile.writeText(s"Concatenating parts")
       res <- AvConvConcat.concat(futs, outputFile)
+      _ = processFile.writeText(s"Complete:${res.name}")
       _ = futs.map(toRm => toRm.delete(true))
     } yield res
   }
@@ -82,6 +93,7 @@ object TrailerMaker extends TrailerMakerBase {
     case x :: f :: xs if x.startsWith("-d") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
     case x :: f :: xs if x.startsWith("-o") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(outputFile = Some(File(f))))))
     case x :: f :: xs if x.startsWith("-p") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(progressFile = Some(File(f))))))
+    case x :: f :: xs if x.startsWith("-s") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(start = Some(f.toLong)))))
     case Nil                                => a
   }
 

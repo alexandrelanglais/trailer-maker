@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AvConvCutter extends TrailerMakerBase {
 
-  def cut(file: File, start: String, duration: String): Future[File] =
+  def cut(file: File, start: String, duration: String, processFile: Option[File] = None, part: Option[String] = None): Future[File] =
     Future {
       logger.debug(s"Cutting file ${file.name} from $start and duration $duration")
       val out = new StringBuilder
@@ -41,8 +41,11 @@ object AvConvCutter extends TrailerMakerBase {
       logger.debug(cmd)
       val s = cmd ! (ioLogger)
 
+      logger.debug(s"Cutting part ${part.fold("")(_.toString)}")
+      processFile.map(_.writeText(s"Cutting part ${part.fold("")(_.toString)}"))
+
       //    parseCutFileString(err.toString)
-      println(err.toString)
+//      println(err.toString)
       tmpFilePath
     }
 

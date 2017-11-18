@@ -30,7 +30,7 @@ object AvConvConcat extends TrailerMakerBase {
       val s = cmd ! (ioLogger)
 
       //    parseCutFileString(err.toString)
-      println(err.toString)
+//      println(err.toString)
       output
     }
 }
