@@ -39,6 +39,10 @@ class AvConvInfoTest extends AsyncFlatSpec with Matchers {
 
   it should "be able to retrieve the metadatas if present" in {
     pending
+    for {
+      file1 <- AvConvInfo.readFileInfo(vFile2)
+      _ = assert(file1.metadatas === Some("title:Knopfler,encoder:Lavf55.36.101,"))
+    } yield Succeeded
   }
 
   it should "be able to retrieve the number of streams" in {
