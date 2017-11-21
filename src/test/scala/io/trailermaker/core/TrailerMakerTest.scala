@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 class TrailerMakerTest extends AsyncFlatSpec with Matchers {
   "TrailerMaker" should "be able to parse all arguments passed" in {
     Future {
-      val args = "-f input.webm -l 2000 -i 1000 -o /tmp/output -p process.txt -s 5000".split(" ").toList
+      val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ --preserve -p process.txt -s 5000".split(" ").toList
       val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
       assert(a.filePath.nonEmpty)
       assert(a.opts.nonEmpty)
@@ -21,18 +21,19 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
         _ = assert(length === 2000)
         interval <- o.interval
         _ = assert(interval === 1000)
-        out <- o.outputFile
-        _ = assert(out.name === "output")
+        out <- o.outputDir
+        _ = assert(out.pathAsString === "/tmp")
         pf <- o.progressFile
         _ = assert(pf.name === "process.txt")
         start <- o.start
         _ = assert(start === 5000)
+        _ = assert(o.preserve === true)
       } yield Succeeded
     }.map(x => assert(x == Some(Succeeded)))
   }
 
   it should "write progress in a config file if specified" in {
-    val args = "-f input.webm -l 2000 -i 1000 -o /tmp/output -p /tmp/process.txt".split(" ").toList
+    val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ -p /tmp/process.txt".split(" ").toList
     val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
 
     for {
@@ -41,6 +42,16 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
       _  = assert(pf.nonEmpty)
       gg = pf.fold(File.newTemporaryFile())(f => f)
       _  = assert(gg.size > 0)
+    } yield Succeeded
+  }
+
+  it should "be able to generate the trailer in the specified folder preserving the name" in {
+    val args = "-o /tmp/trailers -p /tmp/process.txt -d 5000 --preserve".split(" ").toList
+    val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
+    for {
+      f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
+      _  = assert(f.pathAsString.startsWith("/tmp/trailers"))
+      _  = assert(f.pathAsString.endsWith("duration-6.84.webm"))
     } yield Succeeded
   }
 }

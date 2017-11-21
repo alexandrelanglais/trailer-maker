@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 class AvConvConcatTest extends AsyncFlatSpec with Matchers {
   "AvConvConcat" should "be able to concat parts from a video file" in {
     for {
-      file <- AvConvConcat.concat(List(File.resource("concat-1.webm"), File.resource("concat-2.webm")), File.newTemporaryFile())
+      file <- AvConvConcat.concat(List(File.resource("concat-1.webm"), File.resource("concat-2.webm")), File("/tmp"), File.newTemporaryFile().name)
       _ = assert(file.exists)
 
       infos <- AvConvInfo.readFileInfo(file)
@@ -18,7 +18,7 @@ class AvConvConcatTest extends AsyncFlatSpec with Matchers {
   }
   it should "work with avi files" in {
     for {
-      file <- AvConvConcat.concat(List(File.resource("concat-1.avi"), File.resource("concat-2.avi")), File.newTemporaryFile())
+      file <- AvConvConcat.concat(List(File.resource("concat-1.avi"), File.resource("concat-2.avi")), File("/tmp"), File.newTemporaryFile().name)
       _ = assert(file.exists)
 
       infos <- AvConvInfo.readFileInfo(file)
