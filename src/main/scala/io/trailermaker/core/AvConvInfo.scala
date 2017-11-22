@@ -28,7 +28,7 @@ final case class AvConvInfo(format:    Option[String] = None,
                             duration:  FiniteDuration,
                             bitRate:   Option[Int] = None,
                             videoInfo: Option[VideoInfo],
-                            metadatas:  Option[String] = None)
+                            metadatas: Option[String] = None)
 
 object AvConvInfo extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss.S")
@@ -94,7 +94,7 @@ object AvConvInfo extends TrailerMakerBase {
     val dur = infos
       .get("duration")
       .map(o => Duration.create(sdf.parse(o).getTime, TimeUnit.MILLISECONDS))
-    val fn = infos.get("filePath").map(File(_).name)
+    val fn    = infos.get("filePath").map(File(_).name)
     val metas = infos.get("metadatas")
     val vInfo = for {
       vCodec <- infos.get("vcodec")

@@ -16,13 +16,14 @@ import scala.util.Success
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-final case class TMOptions(interval:     Option[Long] = None,
-                           length:       Option[Long] = None,
-                           duration:     Option[Long] = None,
-                           outputDir:    Option[File] = None,
-                           progressFile: Option[File] = None,
-                           start:        Option[Long] = None,
-                           preserve:     Boolean      = false)
+final case class TMOptions(interval:      Option[Long] = None,
+                           length:        Option[Long] = None,
+                           duration:      Option[Long] = None,
+                           outputDir:     Option[File] = None,
+                           progressFile:  Option[File] = None,
+                           start:         Option[Long] = None,
+                           preserve:      Boolean      = false,
+                           prependLength: Boolean      = false)
 
 final case class Arguments(filePath: Option[File], opts: Option[TMOptions])
 
@@ -36,7 +37,8 @@ object TrailerMaker extends TrailerMakerBase {
     val cutLengths     = options.getOrElse(defaultOptions).length.getOrElse(1000L)
     val outputDir      = options.getOrElse(defaultOptions).outputDir.getOrElse(File.newTemporaryDirectory(prefix = "concat-"))
     val preserve       = options.getOrElse(defaultOptions).preserve
-    val fileName       = if (preserve) file.nameWithoutExtension(false) else UUID.randomUUID().toString
+    val prependLength  = options.getOrElse(defaultOptions).preserve
+    val fileNameTmp    = if (preserve) file.nameWithoutExtension(false) else UUID.randomUUID().toString
     val processFile    = options.getOrElse(defaultOptions).progressFile.getOrElse(File.newTemporaryFile(prefix = "process-", suffix = ".txt"))
 
     processFile.createIfNotExists()
@@ -49,6 +51,8 @@ object TrailerMaker extends TrailerMakerBase {
         }
       case None => 0L
     }
+
+    val fileName = if (prependLength && duration > 0) s"${duration / 1000}-seconds-$fileNameTmp" else fileNameTmp
 
     val start = options match {
       case Some(opt) =>
@@ -91,19 +95,21 @@ object TrailerMaker extends TrailerMakerBase {
     println("\t-p <value>: path to a text process file (for logging)")
     println("\t-s <value>: time to start in ms in the original video")
     println("\t--preserve: preserves the original file name")
+    println("\t--prepend-length: add length at the start of the trailer file name")
   }
 
   @tailrec
   def parseArgs(args: List[String], a: Arguments): Arguments = args match {
-    case x :: f :: xs if x.startsWith("-f")    => parseArgs(xs, a.copy(filePath = Some(File(f))))
-    case x :: f :: xs if x.startsWith("-i")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(interval = Some(f.toInt)))))
-    case x :: f :: xs if x.startsWith("-l")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(length = Some(f.toInt)))))
-    case x :: f :: xs if x.startsWith("-d")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
-    case x :: f :: xs if x.startsWith("-o")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(outputDir = Some(File(f))))))
-    case x :: f :: xs if x.startsWith("-p")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(progressFile = Some(File(f))))))
-    case x :: f :: xs if x.startsWith("-s")    => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(start = Some(f.toLong)))))
-    case x :: xs if x.startsWith("--preserve") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(preserve = true))))
-    case Nil                                   => a
+    case x :: f :: xs if x.startsWith("-f")          => parseArgs(xs, a.copy(filePath = Some(File(f))))
+    case x :: f :: xs if x.startsWith("-i")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(interval = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-l")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(length = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-d")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(duration = Some(f.toInt)))))
+    case x :: f :: xs if x.startsWith("-o")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(outputDir = Some(File(f))))))
+    case x :: f :: xs if x.startsWith("-p")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(progressFile = Some(File(f))))))
+    case x :: f :: xs if x.startsWith("-s")          => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(start = Some(f.toLong)))))
+    case x :: xs if x.startsWith("--preserve")       => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(preserve = true))))
+    case x :: xs if x.startsWith("--prepend-length") => parseArgs(xs, a.copy(opts = Some(a.opts.getOrElse(TMOptions()).copy(prependLength = true))))
+    case Nil                                         => a
   }
 
   def main(args: Array[String]): Unit =

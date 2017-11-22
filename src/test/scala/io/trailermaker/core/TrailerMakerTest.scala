@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 class TrailerMakerTest extends AsyncFlatSpec with Matchers {
   "TrailerMaker" should "be able to parse all arguments passed" in {
     Future {
-      val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ --preserve -p process.txt -s 5000".split(" ").toList
+      val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ --preserve --prepend-length -p process.txt -s 5000".split(" ").toList
       val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
       assert(a.filePath.nonEmpty)
       assert(a.opts.nonEmpty)
@@ -28,6 +28,7 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
         start <- o.start
         _ = assert(start === 5000)
         _ = assert(o.preserve === true)
+        _ = assert(o.prependLength === true)
       } yield Succeeded
     }.map(x => assert(x == Some(Succeeded)))
   }
@@ -50,8 +51,19 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
     val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
     for {
       f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
-      _  = assert(f.pathAsString.startsWith("/tmp/trailers"))
-      _  = assert(f.pathAsString.endsWith("duration-6.84.webm"))
+      _ = assert(f.pathAsString.startsWith("/tmp/trailers"))
+      _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
+    } yield Succeeded
+  }
+
+  it should "be able to prepend the length in the trailer file name if a duration is specified" in {
+    val args = "-o /tmp/trailers -p /tmp/process.txt -d 5000 --preserve --prepend-length".split(" ").toList
+    val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
+    for {
+      f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
+      _ = assert(f.pathAsString.startsWith("/tmp/trailers"))
+      _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
+      _ = assert(f.name.startsWith("5-seconds"))
     } yield Succeeded
   }
 }

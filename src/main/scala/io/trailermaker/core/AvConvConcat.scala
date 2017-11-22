@@ -15,7 +15,7 @@ object AvConvConcat extends TrailerMakerBase {
       val tmpFile         = File.newTemporaryFile(suffix = ".txt")
       val ext             = files.headOption.fold(".avi")(f => f.extension.fold(".avi")(e => e))
       val cleanedFileName = fileName.replaceAll("\\s", "_").trim
-      val output          = File(s"${outputDir.pathAsString}/${cleanedFileName}${ext}").createIfNotExists()
+      val output          = File(s"${outputDir.pathAsString}/$cleanedFileName$ext").createIfNotExists()
 
       files.map(f => tmpFile.append(s"file '${f.pathAsString}'\n"))
 
