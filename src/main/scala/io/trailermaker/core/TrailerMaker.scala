@@ -52,7 +52,7 @@ object TrailerMaker extends TrailerMakerBase {
       case None => 0L
     }
 
-    val fileName = if (prependLength && duration > 0) s"${duration / 1000}-seconds-$fileNameTmp" else fileNameTmp
+    val fileName = if (prependLength && duration > 0) s"${duration / 1000}_seconds_-$fileNameTmp" else fileNameTmp
 
     val start = options match {
       case Some(opt) =>
