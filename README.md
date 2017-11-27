@@ -10,8 +10,7 @@ It cuts parts from within the video of a specified cut length at various timesta
 **How can I generate a trailer?**
  1. Clone the project to your local repository
  2. run "sbt assembly"
- 3. Rename the generated jar in the target directory to trailer-maker.jar
- 4. Run the following command: 
+ 3. Run the following command: 
  >java -jar trailer-maker.jar -f <input-file-path> -d 15000 -l 1000 -s 3000 --preserve -o <output-path>
 
 **What are the available options?**

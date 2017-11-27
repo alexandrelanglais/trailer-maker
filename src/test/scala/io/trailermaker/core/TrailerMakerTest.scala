@@ -47,21 +47,21 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
   }
 
   it should "be able to generate the trailer in the specified folder preserving the name" in {
-    val args = "-o /tmp/trailers -p /tmp/process.txt -d 5000 --preserve".split(" ").toList
+    val args = "-o /tmp/ -p /tmp/process.txt -d 5000 --preserve".split(" ").toList
     val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
     for {
       f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
-      _ = assert(f.pathAsString.startsWith("/tmp/trailers"))
+      _ = assert(f.pathAsString.startsWith("/tmp/"))
       _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
     } yield Succeeded
   }
 
   it should "be able to prepend the length in the trailer file name if a duration is specified" in {
-    val args = "-o /tmp/trailers -p /tmp/process.txt -d 5000 --preserve --prepend-length".split(" ").toList
+    val args = "-o /tmp/ -p /tmp/process.txt -d 5000 --preserve --prepend-length".split(" ").toList
     val a: Arguments = TrailerMaker.parseArgs(args, Arguments(None, None))
     for {
       f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
-      _ = assert(f.pathAsString.startsWith("/tmp/trailers"))
+      _ = assert(f.pathAsString.startsWith("/tmp/"))
       _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
       _ = assert(f.name.startsWith("5_seconds_-_"))
     } yield Succeeded

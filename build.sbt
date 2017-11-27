@@ -19,3 +19,4 @@ wartremoverErrors ++= Warts.allBut(
 )
 
 mainClass in assembly := Some("io.trailermaker.core.TrailerMaker")
+assemblyJarName in assembly := "trailer-maker.jar"
