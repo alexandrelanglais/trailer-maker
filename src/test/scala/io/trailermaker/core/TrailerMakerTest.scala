@@ -63,7 +63,7 @@ class TrailerMakerTest extends AsyncFlatSpec with Matchers {
       f <- TrailerMaker.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
       _ = assert(f.pathAsString.startsWith("/tmp/trailers"))
       _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
-      _ = assert(f.name.startsWith("5-seconds"))
+      _ = assert(f.name.startsWith("5_seconds_-_"))
     } yield Succeeded
   }
 }
