@@ -41,7 +41,7 @@ mainClass in Compile := Some("io.trailermaker.core.TrailerMaker")
 //// the bash scripts classpath only needs the fat jar
 //scriptClasspath := Seq( (assemblyJarName in assembly).value )
 
-enablePlugins(JavaAppPackaging, DebianPlugin)
+enablePlugins(JavaAppPackaging, DebianPlugin, RpmPlugin)
 
 // Linux packaging
 packageSummary := "generate trailers easily from a video file"
@@ -59,4 +59,4 @@ name in Debian += "trailer-maker"
 
 // Rpm
 rpmVendor := "trailermaker"
-
+rpmLicense := Some("MIT")
