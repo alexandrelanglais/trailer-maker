@@ -86,7 +86,7 @@ object TrailerMaker extends TrailerMakerBase {
   }
 
   def usage(): Unit = {
-    println("Usage: TrailerMaker -f <original-file-path> [options]")
+    println("Usage: trailer-maker -f <original-file-path> [options]")
     println("where options can be:")
     println("\t-o <path>: output path for the trailer created")
     println("\t-i <value>: interval in ms between cuts")
