@@ -43,6 +43,7 @@ mainClass in Compile := Some("io.trailermaker.core.TrailerMaker")
 
 enablePlugins(JavaAppPackaging, DebianPlugin, RpmPlugin)
 
+//bashScriptTemplateLocation := File("src/templates/bash-template.sh")
 // Linux packaging
 packageSummary := "generate trailers easily from a video file"
 
