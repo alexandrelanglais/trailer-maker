@@ -60,3 +60,6 @@ name in Debian += "trailer-maker"
 // Rpm
 rpmVendor := "trailermaker"
 rpmLicense := Some("MIT")
+rpmRequirements := Seq("java", "ffmpeg >= 3.3.3")
+rpmAutoreq := "yes"
+rpmAutoprov := "yes"
