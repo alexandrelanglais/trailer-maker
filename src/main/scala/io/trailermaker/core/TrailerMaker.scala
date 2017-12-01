@@ -10,6 +10,9 @@ import io.trailermaker.core.impl.AvConvConcat
 import io.trailermaker.core.impl.AvConvCutter
 import io.trailermaker.core.impl.AvConvInfo
 import io.trailermaker.core.impl.AvConvInfos
+import io.trailermaker.core.impl.Media4sConcat
+import io.trailermaker.core.impl.Media4sCutter
+import io.trailermaker.core.impl.Media4sInfo
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
@@ -71,7 +74,7 @@ final case class TrailerMaker(infoImpl: VideoInfos[AvConvInfo], cutterImpl: Vide
       _ = logger.debug(s"wanted duration=$duration")
       _ = logger.debug(s"cut length=$cutLengths")
       interval = if (duration == 0L) options.getOrElse(defaultOptions).interval.getOrElse(0L)
-      else (fileInfo.duration.length.doubleValue() / duration.doubleValue() * cutLengths).longValue()
+      else (fileInfo.duration.length.doubleValue()/ duration.doubleValue() * cutLengths).longValue()
       _     = logger.debug(s"interval=$interval")
       ivals = (start until fileInfo.duration.length by interval).toList
       _     = logger.debug(s"splits=${ivals.mkString(",")}")
@@ -118,7 +121,7 @@ final case class TrailerMaker(infoImpl: VideoInfos[AvConvInfo], cutterImpl: Vide
 
 object TrailerMaker {
   def main(args: Array[String]): Unit = {
-    val tm = TrailerMaker(AvConvInfos(), AvConvCutter(), AvConvConcat())
+    val tm = TrailerMaker(Media4sInfo(), Media4sCutter(), Media4sConcat())
     if (args.length == 0) {
       tm.usage()
     } else {

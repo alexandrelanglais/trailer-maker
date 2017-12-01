@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtNativePackager.packageArchetype
 
 name := "trailer-maker"
 organization := "io.trailermaker"
-version := "0.1"
+version := "0.2"
 scalaVersion := "2.12.4"
 isSnapshot := true
 

@@ -41,11 +41,11 @@ trait TrailerMakerBehaviors { this: AsyncFlatSpec =>
     }
 
     it should "write progress in a config file if specified" in {
-      val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ -p /tmp/process.txt".split(" ").toList
+      val args = "-l 2000 -i 1000 -o /tmp/ -p /tmp/process.txt".split(" ").toList
       val a: Arguments = tm.parseArgs(args, Arguments(None, None))
 
       for {
-        _ <- tm.makeTrailer(File("input.webm"), a.opts)
+        _ <- tm.makeTrailer(File.resource("duration-6.84.avi"), a.opts)
         pf = a.opts.flatMap(_.progressFile)
         _  = assert(pf.nonEmpty)
         gg = pf.fold(File.newTemporaryFile())(f => f)

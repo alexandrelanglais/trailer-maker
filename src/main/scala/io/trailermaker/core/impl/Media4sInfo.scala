@@ -18,7 +18,7 @@ final case class Media4sInfo() extends TrailerMakerBase with VideoInfos[AvConvIn
       AvConvInfo(
         info.videoInfo.map(_.codec),
         Some(file.name),
-        FiniteDuration(info.duration.longValue(), duration.MILLISECONDS),
+        FiniteDuration(info.duration.longValue()*1000, duration.MILLISECONDS),
         Some(info.bitRate.intValue()),
         Some(VideoInfo(
           info.videoInfo.map(_.codec).getOrElse(""),
