@@ -43,7 +43,8 @@ final case class Media4sConcat() extends TrailerMakerBase with VideoConcat {
           previous = percentage
       }
 
-      val t = FFMPEGTranscoder().withArgs("-safe", "0", "-f", "concat")
+      val t = FFMPEGTranscoder()
+        .withArgs("-safe", "0", "-f", "concat")
         .input(tmpFile.toJava)
         .audioCodec(AudioCodec.copy)
         .videoCodec(VideoCodec.copy)

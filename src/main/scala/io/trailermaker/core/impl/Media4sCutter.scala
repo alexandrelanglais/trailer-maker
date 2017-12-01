@@ -18,6 +18,7 @@ import scala.concurrent.Future
 import scala.sys.process._
 
 final case class Media4sCutter() extends TrailerMakerBase with VideoCutter {
+
   @SuppressWarnings(Array("org.wartremover.warts.Var"))
   override def cut(file: File, start: String, duration: String, processFile: Option[File] = None, part: Option[String] = None): Future[File] =
     Future {
@@ -43,13 +44,14 @@ final case class Media4sCutter() extends TrailerMakerBase with VideoCutter {
       }
       val sdf = new SimpleDateFormat("HH:mm:ss")
       sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
-      val dStart = sdf.parse(start).getTime / 1000.0
+      val dStart    = sdf.parse(start).getTime / 1000.0
       val dDuration = sdf.parse(duration).getTime / 1000.0
-      val info = VideoUtil.info(file.toJava)
+      val info      = VideoUtil.info(file.toJava)
       val t = FFMPEGTranscoder()
         .input(file.toJava)
         .audioCodec(AudioCodec.libvorbis)
-        .videoCodec(VideoCodec.libvpx).preset(Preset.Slow)
+        .videoCodec(VideoCodec.libvpx)
+        .preset(Preset.Slow)
         .ss(dStart)
         .duration(dDuration)
         .output(tmpFilePath.toJava)

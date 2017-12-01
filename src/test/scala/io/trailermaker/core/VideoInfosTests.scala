@@ -20,9 +20,9 @@ import scala.util.Success
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 class VideoInfosTests extends AsyncFlatSpec with Matchers with VideoInfosBehaviors {
   private def avConfInfoImpl = AvConvInfos()
-  private def m4sInfoImpl = Media4sInfo()
+  private def m4sInfoImpl    = Media4sInfo()
 
-  "AvConvInfo" should behave like videoInfos(avConfInfoImpl)
+  //"AvConvInfo" should behave like videoInfos(avConfInfoImpl)
 
   "Media4sInfo" should behave like videoInfos(m4sInfoImpl)
 }

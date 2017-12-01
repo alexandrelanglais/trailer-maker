@@ -13,14 +13,13 @@ import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 class VideoConcatTest extends AsyncFlatSpec with Matchers with VideoConcatBehaviors {
-  private val avConvInfos = AvConvInfos()
+  private val avConvInfos  = AvConvInfos()
   private val avConvConcat = AvConvConcat()
 
-  private val m4sInfoImpl = Media4sInfo()
+  private val m4sInfoImpl   = Media4sInfo()
   private val m4sConcatImpl = Media4sConcat()
 
-
-  "AvConvConcat" should behave like videoConcat(avConvInfos, avConvConcat)
+  // "AvConvConcat" should behave like videoConcat(avConvInfos, avConvConcat)
 
   "Media4sConcat" should behave like videoConcat(m4sInfoImpl, m4sConcatImpl)
 

@@ -15,6 +15,7 @@ import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 class TrailerMakerTest extends AsyncFlatSpec with Matchers with TrailerMakerBehaviors {
-  "TrailerMaker with AvConv" should behave like makeTrailer(AvConvInfos(), AvConvCutter(), AvConvConcat())
+  //"TrailerMaker with AvConv" should behave like makeTrailer(AvConvInfos(), AvConvCutter(), AvConvConcat())
+
   "TrailerMaker with Media4s" should behave like makeTrailer(Media4sInfo(), Media4sCutter(), Media4sConcat())
 }

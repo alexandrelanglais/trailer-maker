@@ -15,7 +15,6 @@ trait TrailerMakerBehaviors { this: AsyncFlatSpec =>
 
   protected def makeTrailer(infoImpl: => VideoInfos[AvConvInfo], cutterImpl: => VideoCutter, concatImpl: => VideoConcat) {
     val tm = TrailerMaker(infoImpl, cutterImpl, concatImpl)
-
     it should "be able to parse all arguments passed" in {
       Future {
         val args = "-f input.webm -l 2000 -i 1000 -o /tmp/ --preserve --prepend-length -p process.txt -s 5000".split(" ").toList
@@ -72,6 +71,26 @@ trait TrailerMakerBehaviors { this: AsyncFlatSpec =>
         _ = assert(f.pathAsString.endsWith("duration-6.84.webm"))
         _ = assert(f.name.startsWith("5_seconds_-_"))
       } yield Succeeded
+    }
+
+    it should "be able to call main" in {
+      val f    = File.resource("duration-6.84.avi")
+      val args = Array("-f", f.pathAsString, "-o", "/tmp/", "-p", "/tmp/process.txt", "-d", "5000", "-l", "1000", "--preserve")
+      val resFile = File("/tmp/duration-6.84.webm")
+      TrailerMaker.main(args)
+      assert(resFile.exists)
+    }
+
+    it should "be able to call main with space in path" in {
+      val testDir = File("/tmp/trailer maker")
+      val f    = File.resource("spaces file name duration 6.84.avi")
+      val args = Array("-f", f.pathAsString, "-o", "/tmp/trailer maker", "-p", "/tmp/trailer maker/process.txt", "-d", "5000", "-l", "1000", "--preserve")
+      val resFile = File("/tmp/trailer maker/spaces_file_name_duration_6.84.webm")
+
+      testDir.createDirectories()
+
+      TrailerMaker.main(args)
+      assert(resFile.exists)
     }
   }
 }

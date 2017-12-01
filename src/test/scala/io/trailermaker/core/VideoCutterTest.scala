@@ -14,10 +14,10 @@ import scala.concurrent.duration._
 
 @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
 class VideoCutterTest extends AsyncFlatSpec with Matchers with VideoCutterBehaviors {
-  private val avConvInfoImpl = AvConvInfos()
+  private val avConvInfoImpl   = AvConvInfos()
   private val avConvCutterImpl = AvConvCutter()
 
-  private val m4sInfoImpl = Media4sInfo()
+  private val m4sInfoImpl   = Media4sInfo()
   private val m4sCutterImpl = Media4sCutter()
 
 //  "AvConvCutter" should behave like videoCutter(avConvInfoImpl, avConvCutterImpl)

@@ -12,24 +12,24 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
 
 final case class Media4sInfo() extends TrailerMakerBase with VideoInfos[AvConvInfo] {
-  override def readFileInfo(file: File) = {
+  override def readFileInfo(file: File) =
     Future {
       val info = VideoUtil.info(file.toJava)
       AvConvInfo(
         info.videoInfo.map(_.codec),
         Some(file.name),
-        FiniteDuration(info.duration.longValue()*1000, duration.MILLISECONDS),
+        FiniteDuration(info.duration.longValue() * 1000, duration.MILLISECONDS),
         Some(info.bitRate.intValue()),
-        Some(VideoInfo(
-          info.videoInfo.map(_.codec).getOrElse(""),
-          info.videoInfo.map(_.width).getOrElse(0),
-          info.videoInfo.map(_.height).getOrElse(0),
-          info.videoInfo.map(_.fps / 100).getOrElse(0)
-        )),
+        Some(
+          VideoInfo(
+            info.videoInfo.map(_.codec).getOrElse(""),
+            info.videoInfo.map(_.width).getOrElse(0),
+            info.videoInfo.map(_.height).getOrElse(0),
+            info.videoInfo.map(_.fps / 100).getOrElse(0)
+          )),
         Some(info.meta.map.mkString(":"))
       )
     }
-  }
 
 //  final case class VideoInfo(codec: String, width: Int, height: Int, fps: Double)
 //

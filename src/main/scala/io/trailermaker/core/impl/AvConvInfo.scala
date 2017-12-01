@@ -26,8 +26,7 @@ final case class AvConvInfo(format:    Option[String] = None,
                             videoInfo: Option[VideoInfo],
                             metadatas: Option[String] = None)
 
-final case class AvConvInfos()
-  extends TrailerMakerBase with VideoInfos[AvConvInfo] {
+final case class AvConvInfos() extends TrailerMakerBase with VideoInfos[AvConvInfo] {
   private val sdf = new SimpleDateFormat("HH:mm:ss.S")
 
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
