@@ -1,29 +1,16 @@
-package io.trailermaker.core
-
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
-import java.util.concurrent.TimeUnit
+package io.trailermaker.core.impl
 
 import better.files.File
-import com.typesafe.scalalogging.LazyLogging
-import io.trailermaker.core.AvConvInfo.EXE_NAME
-import java.io
+import io.trailermaker.core.TrailerMakerBase
+import io.trailermaker.core.VideoCutter
 
-import scala.annotation.tailrec
-import scala.collection.immutable.Map
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.sys.process._
-import scala.util.Success
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.sys.process._
 
-object AvConvCutter extends TrailerMakerBase {
+final case class AvConvCutter() extends TrailerMakerBase with VideoCutter {
 
-  def cut(file: File, start: String, duration: String, processFile: Option[File] = None, part: Option[String] = None): Future[File] =
+  override def cut(file: File, start: String, duration: String, processFile: Option[File] = None, part: Option[String] = None): Future[File] =
     Future {
       logger.debug(s"Cutting file ${file.name} from $start and duration $duration")
       val out = new StringBuilder

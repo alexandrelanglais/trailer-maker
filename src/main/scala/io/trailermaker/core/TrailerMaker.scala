@@ -6,7 +6,10 @@ import java.util.TimeZone
 import java.util.UUID
 
 import better.files._
-import io.trailermaker.core.AvConvInfo.sdf
+import io.trailermaker.core.impl.AvConvConcat
+import io.trailermaker.core.impl.AvConvCutter
+import io.trailermaker.core.impl.AvConvInfo
+import io.trailermaker.core.impl.AvConvInfos
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
@@ -27,12 +30,11 @@ final case class TMOptions(interval:      Option[Long] = None,
 
 final case class Arguments(filePath: Option[File], opts: Option[TMOptions])
 
-object TrailerMaker extends TrailerMakerBase {
+final case class TrailerMaker(infoImpl: VideoInfos[AvConvInfo], cutterImpl: VideoCutter, concatImpl: VideoConcat) extends TrailerMakerBase {
   private val sdf = new SimpleDateFormat("HH:mm:ss.S")
   sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
 
   def makeTrailer(file: File, options: Option[TMOptions] = None): Future[File] = {
-
     val defaultOptions = TMOptions(interval = Some(75000L), length = Some(1000L))
     val cutLengths     = options.getOrElse(defaultOptions).length.getOrElse(1000L)
     val outputDir      = options.getOrElse(defaultOptions).outputDir.getOrElse(File.newTemporaryDirectory(prefix = "concat-"))
@@ -64,7 +66,7 @@ object TrailerMaker extends TrailerMakerBase {
     }
 
     for {
-      fileInfo: AvConvInfo <- AvConvInfo.readFileInfo(file)
+      fileInfo: AvConvInfo <- infoImpl.readFileInfo(file)
       _ = logger.debug(s"file duration=${fileInfo.duration.length}")
       _ = logger.debug(s"wanted duration=$duration")
       _ = logger.debug(s"cut length=$cutLengths")
@@ -76,10 +78,10 @@ object TrailerMaker extends TrailerMakerBase {
       futs <- Future.sequence(for {
                ival <- ivals
                part = s"${(ival / interval) + 1}/${ivals.length}"
-             } yield AvConvCutter.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths)), Some(processFile), Some(part)))
+             } yield cutterImpl.cut(file, sdf.format(new Date(ival)), sdf.format(new Date(cutLengths)), Some(processFile), Some(part)))
 
       _ = processFile.writeText(s"Concatenating parts")
-      res <- AvConvConcat.concat(futs, outputDir, fileName)
+      res <- concatImpl.concat(futs, outputDir, fileName)
       _ = processFile.writeText(s"Complete:${res.name}")
       _ = futs.map(toRm => toRm.delete(true))
     } yield res
@@ -112,18 +114,23 @@ object TrailerMaker extends TrailerMakerBase {
     case Nil                                         => a
   }
 
-  def main(args: Array[String]): Unit =
+}
+
+object TrailerMaker {
+  def main(args: Array[String]): Unit = {
+    val tm = TrailerMaker(AvConvInfos(), AvConvCutter(), AvConvConcat())
     if (args.length == 0) {
-      usage()
+      tm.usage()
     } else {
-      val ar = parseArgs(args.toList, Arguments(None, None))
+      val ar = tm.parseArgs(args.toList, Arguments(None, None))
       ar.filePath match {
         case None => println("Attribute -f is mandatory")
         case Some(file) => {
-          val r = makeTrailer(file, ar.opts).map(v => println(s"Trailer generated at ${v.pathAsString}"))
+          val r = tm.makeTrailer(file, ar.opts).map(v => println(s"Trailer generated at ${v.pathAsString}"))
           Await.result(r, 15.hours)
         }
       }
     }
+  }
 
 }

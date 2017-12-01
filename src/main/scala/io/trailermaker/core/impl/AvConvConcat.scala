@@ -1,16 +1,16 @@
-package io.trailermaker.core
+package io.trailermaker.core.impl
 
 import better.files.File
-import io.trailermaker.core.AvConvCutter.EXE_NAME
-import io.trailermaker.core.AvConvCutter.logger
+import io.trailermaker.core.TrailerMakerBase
+import io.trailermaker.core.VideoConcat
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.sys.process._
 
-object AvConvConcat extends TrailerMakerBase {
+final case class AvConvConcat() extends TrailerMakerBase with VideoConcat {
 
-  def concat(files: List[File], outputDir: File, fileName: String): Future[File] =
+  override def concat(files: List[File], outputDir: File, fileName: String): Future[File] =
     Future {
       val tmpFile         = File.newTemporaryFile(suffix = ".txt")
       val ext             = files.headOption.fold(".avi")(f => f.extension.fold(".avi")(e => e))
