@@ -74,8 +74,8 @@ trait TrailerMakerBehaviors { this: AsyncFlatSpec =>
     }
 
     it should "be able to call main" in {
-      val f    = File.resource("duration-6.84.avi")
-      val args = Array("-f", f.pathAsString, "-o", "/tmp/", "-p", "/tmp/process.txt", "-d", "5000", "-l", "1000", "--preserve")
+      val f       = File.resource("duration-6.84.avi")
+      val args    = Array("-f", f.pathAsString, "-o", "/tmp/", "-p", "/tmp/process.txt", "-d", "5000", "-l", "1000", "--preserve")
       val resFile = File("/tmp/duration-6.84.webm")
       TrailerMaker.main(args)
       assert(resFile.exists)
@@ -83,8 +83,8 @@ trait TrailerMakerBehaviors { this: AsyncFlatSpec =>
 
     it should "be able to call main with space in path" in {
       val testDir = File("/tmp/trailer maker")
-      val f    = File.resource("spaces file name duration 6.84.avi")
-      val args = Array("-f", f.pathAsString, "-o", "/tmp/trailer maker", "-p", "/tmp/trailer maker/process.txt", "-d", "5000", "-l", "1000", "--preserve")
+      val f       = File.resource("spaces file name duration 6.84.avi")
+      val args    = Array("-f", f.pathAsString, "-o", "/tmp/trailer maker", "-p", "/tmp/trailer maker/process.txt", "-d", "5000", "-l", "1000", "--preserve")
       val resFile = File("/tmp/trailer maker/spaces_file_name_duration_6.84.webm")
 
       testDir.createDirectories()

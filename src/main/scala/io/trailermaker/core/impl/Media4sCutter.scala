@@ -10,6 +10,7 @@ import org.matthicks.media4s.video.Preset
 import org.matthicks.media4s.video.VideoUtil
 import org.matthicks.media4s.video.codec.AudioCodec
 import org.matthicks.media4s.video.codec.VideoCodec
+import org.matthicks.media4s.video.transcode.FFMPEGTime
 import org.matthicks.media4s.video.transcode.FFMPEGTranscoder
 import org.matthicks.media4s.video.transcode.TranscodeListener
 
@@ -44,18 +45,17 @@ final case class Media4sCutter() extends TrailerMakerBase with VideoCutter {
       }
       val sdf = new SimpleDateFormat("HH:mm:ss")
       sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
-      val dStart    = sdf.parse(start).getTime / 1000.0
-      val dDuration = sdf.parse(duration).getTime / 1000.0
-      val info      = VideoUtil.info(file.toJava)
+
+      val dDur = sdf.parse(duration).getTime / 1000.0
       val t = FFMPEGTranscoder()
+        .withArgs("-y", "-ss", start)
         .input(file.toJava)
-        .audioCodec(AudioCodec.libvorbis)
-        .videoCodec(VideoCodec.libvpx)
-        .preset(Preset.Slow)
-        .ss(dStart)
-        .duration(dDuration)
+        .duration(dDur)
+        .withArgs("-c:v", "vp8", "-c:a", "libvorbis", "-quality", "good", "-b:v", "600k", "-qmin", "10", "-qmax", "42", "-maxrate", "500k", "-bufsize", "1000k")
         .output(tmpFilePath.toJava)
-      t.execute(Some(listener))
+
+      logger.debug(t.command.mkString(" "))
+      t.execute(Some(listener), Some(NICE_VALUE))
 
       logger.debug(s"Cutting part ${part.fold("")(_.toString)}")
       processFile.map(_.writeText(s"Cutting part ${part.fold("")(_.toString)}"))

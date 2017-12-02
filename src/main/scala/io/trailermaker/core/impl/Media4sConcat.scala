@@ -29,7 +29,7 @@ final case class Media4sConcat() extends TrailerMakerBase with VideoConcat {
 
       var previous: Double = 0.0
       val listener = new TranscodeListener {
-        override def log(message: String): Unit = {}
+        override def log(message: String): Unit = logger.debug(message)
 
         override def progress(percentage: Double,
                               frame:      Int,
@@ -48,9 +48,9 @@ final case class Media4sConcat() extends TrailerMakerBase with VideoConcat {
         .input(tmpFile.toJava)
         .audioCodec(AudioCodec.copy)
         .videoCodec(VideoCodec.copy)
-        .preset(Preset.Slow)
+        .withArgs("-metadata", """comment="Created by http://trailermaker.io" """.stripMargin)
         .output(output.toJava)
-      t.execute(Some(listener))
+      t.execute(Some(listener), Some(NICE_VALUE))
 
       output
     }

@@ -19,7 +19,7 @@ class VideoConcatTest extends AsyncFlatSpec with Matchers with VideoConcatBehavi
   private val m4sInfoImpl   = Media4sInfo()
   private val m4sConcatImpl = Media4sConcat()
 
-  // "AvConvConcat" should behave like videoConcat(avConvInfos, avConvConcat)
+  "AvConvConcat" should behave like videoConcat(avConvInfos, avConvConcat)
 
   "Media4sConcat" should behave like videoConcat(m4sInfoImpl, m4sConcatImpl)
 

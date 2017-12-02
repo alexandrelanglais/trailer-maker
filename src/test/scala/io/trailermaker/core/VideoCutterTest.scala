@@ -20,7 +20,7 @@ class VideoCutterTest extends AsyncFlatSpec with Matchers with VideoCutterBehavi
   private val m4sInfoImpl   = Media4sInfo()
   private val m4sCutterImpl = Media4sCutter()
 
-//  "AvConvCutter" should behave like videoCutter(avConvInfoImpl, avConvCutterImpl)
+  "AvConvCutter" should behave like videoCutter(avConvInfoImpl, avConvCutterImpl)
 
   "Media4sCutter" should behave like videoCutter(m4sInfoImpl, m4sCutterImpl)
 
