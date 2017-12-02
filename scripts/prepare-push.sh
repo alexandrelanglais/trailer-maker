@@ -8,4 +8,4 @@ cd $DIR/..
 
 sbt scalafmt scalastyle \
     compile test:compile \
-    test:test             && echo "### Unit Tests: OK"
+    test:test publishLocal  && echo "### Unit Tests: OK"
